@@ -1,0 +1,18 @@
+# Sertifikat self-signed (dibuat otomatis saat pertama kali dijalankan)
+certs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# Log
+nohup.out
+*.log
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Virtual Steering</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===================== atas ===================== -->
+  <header id="topbar">
+    <span id="brand">Virtual&nbsp;Steering</span>
+    <button id="modeChip" class="chip" type="button">Mode: Putar</button>
+    <span id="conn"><i id="dot" class="dot off"></i><span id="connText">memulai…</span><span id="rtt"></span></span>
+    <span id="topActions">
+      <button id="btnCalib" class="chip accent" type="button">Kalibrasi</button>
+      <button id="btnSettings" class="chip" type="button">⚙</button>
+    </span>
+  </header>
+
+  <!-- ===================== tengah: setir ===================== -->
+  <main id="stage">
+    <div id="wheelBox">
+      <svg id="wheel" viewBox="0 0 240 240" aria-hidden="true">
+        <g id="wheelRot">
+          <circle cx="120" cy="120" r="102" class="rim"/>
+          <line x1="86"  y1="120" x2="36"  y2="120" class="spoke"/>
+          <line x1="154" y1="120" x2="204" y2="120" class="spoke"/>
+          <line x1="120" y1="154" x2="120" y2="204" class="spoke"/>
+          <line x1="120" y1="30"  x2="120" y2="58"  class="marker"/>
+          <circle cx="120" cy="120" r="34" class="hub"/>
+          <circle cx="120" cy="120" r="9"  class="hubDot"/>
+        </g>
+      </svg>
+      <div id="steerVal">0°</div>
+    </div>
+
+    <div id="pedalBars">
+      <div class="pbar"><i id="gasBar"></i><span>GAS</span></div>
+      <div class="pbar"><i id="brakeBar"></i><span>REM</span></div>
+    </div>
+
+    <div id="toast"></div>
+  </main>
+
+  <!-- ===================== kiri: klakson & gigi ===================== -->
+  <div id="leftPad" class="pad">
+    <button class="pbtn big horn" data-btn="4096" type="button">📯<small>Klakson</small></button>
+    <div class="grid2">
+      <button class="pbtn" data-btn="16384" type="button">Gigi&nbsp;+</button>
+      <button class="pbtn" data-btn="32768" type="button">Gigi&nbsp;−</button>
+      <button class="pbtn" data-btn="256" type="button">Mundur</button>
+      <button class="pbtn" data-btn="8192" type="button">Rem&nbsp;tangan</button>
+    </div>
+    <div class="row2">
+      <button class="pbtn sq" data-btn="4" type="button">◀</button>
+      <button class="pbtn sq" data-btn="8" type="button">▶</button>
+    </div>
+  </div>
+
+  <!-- ===================== kanan: gas & rem ===================== -->
+  <div id="rightPad" class="pad">
+    <button class="pbtn big gas" data-axis="gas" type="button">GAS</button>
+    <button class="pbtn big brake" data-axis="brake" type="button">REM</button>
+    <div class="grid2">
+      <button class="pbtn" data-btn="512" type="button">Lampu&nbsp;jauh</button>
+      <button class="pbtn" data-btn="1" type="button">Lampu</button>
+    </div>
+  </div>
+
+  <!-- ===================== bawah: tombol kecil ===================== -->
+  <div id="bottomBar">
+    <button class="pbtn tiny" data-btn="2" type="button">Mode lampu</button>
+    <button class="pbtn tiny" data-btn="32" type="button">Kamera</button>
+    <button class="pbtn tiny" data-btn="16" type="button">Jeda</button>
+  </div>
+
+</div>
+
+<!-- ===================== layar mulai / izin ===================== -->
+<div id="overlay">
+  <div class="card">
+    <h1>Virtual Steering</h1>
+    <p class="lead">Ponsel Anda menjadi setir untuk ETS2 &amp; MudRunner.</p>
+    <ol>
+      <li>Pegang ponsel seperti setir (mode <b>Putar</b>).</li>
+      <li>Tekan <b>Mulai</b>, lalu izinkan <b>sensor gerak</b>.</li>
+      <li>Tekan <b>Kalibrasi</b> saat setir dalam posisi lurus.</li>
+    </ol>
+    <button id="startBtn" type="button">▶&nbsp;Mulai</button>
+    <p id="startErr" class="err"></p>
+    <p id="serverInfo" class="hint">memeriksa server…</p>
+  </div>
+</div>
+
+<!-- ===================== panel setelan ===================== -->
+<div id="settings" class="sheet hidden">
+  <div class="sheetHead">
+    <h2>Setelan</h2>
+    <button id="btnCloseSettings" class="chip" type="button">✕</button>
+  </div>
+  <div class="sheetBody">
+
+    <label class="segLabel">Mode setir</label>
+    <div id="modeSeg" class="seg">
+      <button data-mode="yaw" type="button">Putar (giroskop)</button>
+      <button data-mode="tilt" type="button">Miring (gravitasi)</button>
+      <button data-mode="touch" type="button">Sentuh / seret</button>
+    </div>
+    <p class="hint">Putar = putarkan ponsel seperti setir. Miring = miringkan ponsel ke kiri/kanan. Sentuh = seret jari di layar.</p>
+
+    <label class="ctl">Rentang setir penuh <span id="rangeVal">55°</span>
+      <input type="range" id="rangeCtl" min="10" max="120" step="1" value="55">
+    </label>
+    <label class="ctl">Zona mati <span id="deadVal">5%</span>
+      <input type="range" id="deadCtl" min="0" max="30" step="1" value="5">
+    </label>
+    <label class="ctl">Sensitivitas <span id="sensVal">100%</span>
+      <input type="range" id="sensCtl" min="20" max="300" step="5" value="100">
+    </label>
+    <label class="ctl">Penghalusan <span id="smoothVal">35%</span>
+      <input type="range" id="smoothCtl" min="0" max="90" step="5" value="35">
+    </label>
+
+    <label class="check"><input type="checkbox" id="invertCtl"> Balik arah setir</label>
+    <label class="check"><input type="checkbox" id="fsCtl" checked> Layar penuh otomatis saat Mulai</label>
+
+    <div class="btnRow">
+      <button id="btnCalib2" class="chip accent" type="button">Kalibrasi tengah</button>
+      <button id="btnResetCfg" class="chip danger" type="button">Reset setelan</button>
+    </div>
+    <p class="hint">Setelan tersimpan otomatis di ponsel ini.</p>
+
+    <div class="mapping">
+      <h3>Petunjuk tombol (HP → Xbox → game)</h3>
+      <table>
+        <tr><td>Gas / Rem</td><td>RT / LT</td><td>Gas / rem (default ETS2)</td></tr>
+        <tr><td>Klakson</td><td>A</td><td>Klakson</td></tr>
+        <tr><td>Gigi + / −</td><td>X / Y</td><td>Naik / turun gigi</td></tr>
+        <tr><td>Mundur</td><td>LB</td><td>Gigi mundur</td></tr>
+        <tr><td>Lampu jauh</td><td>RB</td><td>Lampu jauh</td></tr>
+        <tr><td>Lampu</td><td>D-pad atas</td><td>Nyalakan lampu</td></tr>
+        <tr><td>Mode lampu</td><td>D-pad bawah</td><td>Ganti mode lampu</td></tr>
+        <tr><td>◀ / ▶</td><td>D-pad kiri/kanan</td><td>Lihat kiri / kanan</td></tr>
+        <tr><td>Kamera</td><td>BACK</td><td>Ganti kamera</td></tr>
+        <tr><td>Jeda</td><td>START</td><td>Menu / jeda</td></tr>
+      </table>
+      <p class="hint">Semua tombol bisa diubah ulang di pengaturan kontrol game.</p>
+    </div>
+
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Dependensi server Virtual Steering Controller
+aiohttp>=3.9                      # server HTTP + WebSocket
+cryptography>=41.0                # membuat sertifikat HTTPS self-signed (fallback: openssl CLI)
+vgamepad>=0.1.0; sys_platform == "win32"   # gamepad virtual Xbox via ViGEmBus (hanya Windows)
